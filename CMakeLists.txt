@@ -16,17 +16,23 @@ string(TOUPPER ${PROJECT_NAME} PROJECT_TO_UPPER)
 string(TOLOWER ${PROJECT_NAME} PROJECT_TO_LOWER)
 
 find_package(Qt4 REQUIRED)
-# COMPILER customization
-  # compilers flags
-  if (MSVC)
-    add_definitions (/W3 -Zc:wchar_t-)
-  elseif (CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions (-Wall)
-  else ()
-    message ("Unknown compiler")
-  endif ()
-  #compiler options
-  set(OPTIMIZATION_FLAGS "-O2" )
+
+# compilers flags
+if (MSVC)
+   add_definitions (/W3 -Zc:wchar_t-)
+elseif (CMAKE_COMPILER_IS_GNUCXX)
+   add_definitions (-Wall)
+else ()
+   message ("Unknown compiler")
+endif ()
+
+#compiler options
+set(OPTIMIZATION_FLAGS "-O2")
+
+if (NOT "$ENV{DESTDIR}" STREQUAL "")
+   set(CMAKE_INSTALL_PREFIX "$ENV{DESTDIR}")
+endif()
+
 message("Building project ${PROJECT_NAME}")
 
 message("
@@ -228,8 +234,18 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # and 64-bit binaries must be separate. (Idea shamelessly stolen from the QJson project.)
 # NOTE: these locations will be used *only* if CMAKE_INSTALL_PREFIX is explicitly defined (see
 # comment below).
-set (BIN_SUFFIX "" CACHE STRING "Define suffix of binary directory name (32/64)" )
-set (BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin${BIN_SUFFIX}" CACHE PATH "The directory where binaries will install")
+
+include(CheckTypeSize)
+CHECK_TYPE_SIZE("void*" PTR_SIZE BUILTIN_TYPES_ONLY)
+if (PTR_SIZE EQUAL 8)
+   set (BIN_SUFFIX "64")
+else (PTR_SIZE EQUAL 8)
+   set (BIN_SUFFIX "32")
+endif(PTR_SIZE EQUAL 8)
+
+#set (BIN_SUFFIX "" CACHE STRING "Define suffix of binary directory name (32/64)" )
+#set (BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin${BIN_SUFFIX}" CACHE PATH "The directory where binaries will install")
+set (BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "The directory where binaries will install")
 set (LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib${BIN_SUFFIX}" CACHE PATH "The directory where lib will install")
 set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/${PROJECT_TO_LOWER}" CACHE PATH "The directory where headers will install")
 set (CMAKECONFIG_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}" CACHE PATH "The directory where Log4QtConfig.cmake will install")
