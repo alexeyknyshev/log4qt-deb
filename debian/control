@@ -1,0 +1,24 @@
+Source: log4qt
+Priority: optional
+Maintainer: Alexey Knyshev <alexey.knyshev@gmail.com>
+Build-Depends: debhelper (>= 8.0.0), cmake, libqt4-dev
+Standards-Version: 3.9.2
+Section: libs
+Homepage: http://log4qt.sourceforge.net/
+
+Package: liblog4qt-dev
+Section: libdevel
+Architecture: any
+Depends: liblog4qt (= ${binary:Version}), libqt4-dev
+Description: Development files and tools for Log4Qt library
+ This package contains development files for Log4Qt library.
+ Use this to build develop application with Log4Qt logging support.
+
+Package: liblog4qt
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libqt4-core, libqt4-network, libqt4-sql
+Description: C++/Qt port of the Apache Log4j
+ Log4Qt is a C++ port of the Apache Software Foundation Log4j package
+ using the Trolltech Qt Framework. It is intended to be used by open
+ source and commercial Qt projects.

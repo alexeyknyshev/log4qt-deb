@@ -8,7 +8,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 set(CMAKE_DEBUG_POSTFIX d)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 # variable for project name, used in many places
-set (PROJECT Log4Qt)
+set(PROJECT Log4Qt)
 
 project(${PROJECT})
 
@@ -30,7 +30,14 @@ endif ()
 set(OPTIMIZATION_FLAGS "-O2")
 
 if (NOT "$ENV{DESTDIR}" STREQUAL "")
-   set(CMAKE_INSTALL_PREFIX "$ENV{DESTDIR}")
+   set(CMAKE_INSTALL_PREFIX "")
+   message("DESTDIR is not empty, CMAKE_INSTALL_PREFIX cleaned")
+endif()
+
+set(INSTALL_DIR "$ENV{DESTDIR}")
+if ("${INSTALL_DIR}" STREQUAL "")
+   set(INSTALL_DIR "/usr")
+   message("DESTDIR is empty, INSTALL_DIR = ${INSTALL_DIR}")
 endif()
 
 message("Building project ${PROJECT_NAME}")
@@ -44,6 +51,7 @@ CMAKE_CXX_FLAGS         = ${CMAKE_CXX_FLAGS}
 LDFLAGS                 = $ENV{LDFLAGS}
 CMAKE_EXE_LINKER_FLAGS  = ${CMAKE_EXE_LINKER_FLAGS}
 CMAKE_INSTALL_PREFIX    = ${CMAKE_INSTALL_PREFIX}
+INSTALL_DIR		= ${INSTALL_DIR}
 ")
 
 # remove when release
@@ -179,7 +187,7 @@ add_definitions(-DLOG4QT_VERSION_STR="${LOG4QT_VERSION}")
 # Make sure LOG4QT_BUILD_STATIC is defined since the variable value is used when configuring
 # the project-config.cmake file.
 if (NOT DEFINED LOG4QT_BUILD_STATIC)
-	set (LOG4QT_BUILD_STATIC FALSE)
+    set(LOG4QT_BUILD_STATIC FALSE)
 endif (NOT DEFINED LOG4QT_BUILD_STATIC)
 
 # QT
@@ -187,9 +195,9 @@ set(QT_DONT_USE_QTGUI TRUE)
 include(${QT_USE_FILE})
 
 if (QT_USE_QTSQL)
-	message("With QT_USE_QTSQL DatabaseAppender, DatabaseLayout compiled")
-	list(APPEND LOG4QT_Q_HEADERS src/databaseappender.h src/databaselayout.h)
-	list(APPEND LOG4QT_SOURCES src/databaseappender.cpp src/databaselayout.cpp)
+    message("With QT_USE_QTSQL DatabaseAppender, DatabaseLayout compiled")
+    list(APPEND LOG4QT_Q_HEADERS src/databaseappender.h src/databaselayout.h)
+    list(APPEND LOG4QT_SOURCES src/databaseappender.cpp src/databaselayout.cpp)
 endif (QT_USE_QTSQL)
 
 if (QT_USE_QTNETWORK)
@@ -207,10 +215,10 @@ qt4_automoc(${LOG4QT_Q_SOURCES})
  
 # BUILD STATIC LIBRARY
 if (LOG4QT_BUILD_STATIC)
-set(LOG4QT_BUILD_CONFIGURATION STATIC)
+    set(LOG4QT_BUILD_CONFIGURATION STATIC)
 # BUILD SHARED LIBRARY
 else (LOG4QT_BUILD_STATIC)
-set(LOG4QT_BUILD_CONFIGURATION SHARED)
+    set(LOG4QT_BUILD_CONFIGURATION SHARED)
 endif (LOG4QT_BUILD_STATIC)
 
 add_library(${PROJECT_NAME} ${LOG4QT_BUILD_CONFIGURATION} 
@@ -238,17 +246,27 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 include(CheckTypeSize)
 CHECK_TYPE_SIZE("void*" PTR_SIZE BUILTIN_TYPES_ONLY)
 if (PTR_SIZE EQUAL 8)
-   set (BIN_SUFFIX "64")
+   set(BIN_SUFFIX "64")
 else (PTR_SIZE EQUAL 8)
-   set (BIN_SUFFIX "32")
+   set(BIN_SUFFIX "")
 endif(PTR_SIZE EQUAL 8)
 
-#set (BIN_SUFFIX "" CACHE STRING "Define suffix of binary directory name (32/64)" )
-#set (BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin${BIN_SUFFIX}" CACHE PATH "The directory where binaries will install")
-set (BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "The directory where binaries will install")
-set (LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib${BIN_SUFFIX}" CACHE PATH "The directory where lib will install")
-set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/${PROJECT_TO_LOWER}" CACHE PATH "The directory where headers will install")
-set (CMAKECONFIG_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}" CACHE PATH "The directory where Log4QtConfig.cmake will install")
+message("CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
+
+#set(BIN_SUFFIX "" CACHE STRING "Define suffix of binary directory name (32/64)" )
+#set(BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin${BIN_SUFFIX}" CACHE PATH "The directory where binaries will install")
+
+set(BIN_INSTALL_DIR "/bin" CACHE PATH "The directory where binaries will install")
+set(LIB_INSTALL_DIR "/lib${BIN_SUFFIX}" CACHE PATH "The directory where lib will install")
+set(INCLUDE_INSTALL_DIR "/include/${PROJECT_TO_LOWER}" CACHE PATH "The directory where headers will install")
+set(CMAKECONFIG_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}" CACHE PATH "The directory where Log4QtConfig.cmake will install")
+
+message("
+BIN_INSTALL_DIR 	= ${INSTALL_DIR}${BIN_INSTALL_DIR}
+LIB_INSTALL_DIR 	= ${INSTALL_DIR}${LIB_INSTALL_DIR}
+INCLUDE_INSTALL_DIR 	= ${INSTALL_DIR}${INCLUDE_INSTALL_DIR}
+CMAKECONFIG_INSTALL_DIR	= ${INSTALL_DIR}${CMAKECONFIG_INSTALL_DIR}
+")
 
 if (NOT LOG4QT_DONT_INSTALL)
     
@@ -259,26 +277,26 @@ if (NOT LOG4QT_DONT_INSTALL)
 	# install locations if CMAKE_INSTALL_PREFIX has *not* been explicitly defined. The rationale is
 	# that folks who were satisfied with the old, default install locations would not have been
 	# trying to use CMAKE_INSTALL_PREFIX.
-	if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-		if (NOT APPLE)
-			SET(TARGET_INCLUDE_DIR "${QT_INCLUDE_DIR}/${PROJECT_NAME}")
-			SET(TARGET_LIB_DIR "${QT_LIBRARY_DIR}")
-			SET(TARGET_BIN_DIR "${QT_BINARY_DIR}")
-		else()
+#	if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#		if (NOT APPLE)
+#			SET(TARGET_INCLUDE_DIR "${QT_INCLUDE_DIR}/${PROJECT_NAME}")
+#			SET(TARGET_LIB_DIR "${QT_LIBRARY_DIR}")
+#			SET(TARGET_BIN_DIR "${QT_BINARY_DIR}")
+#		else()
 			#Qt is the framework but log4qt is not. So it should not be placed into the frameworks location
 			#Also the include dir should not be retrieved from the Qt itself, see http://www.paraview.org/Bug/view.php?id=10632
-			SET(TARGET_INCLUDE_DIR "/usr/include/${PROJECT_NAME}")
-			SET(TARGET_LIB_DIR "/usr/lib")
-			SET(TARGET_BIN_DIR "/usr/bin")
-		endif()
+#			SET(TARGET_INCLUDE_DIR "/usr/include/${PROJECT_NAME}")
+#			SET(TARGET_LIB_DIR "/usr/lib")
+#			SET(TARGET_BIN_DIR "/usr/bin")
+#		endif()
 		# copy project file into qt_libdir and create project.cmake file for use this library in your cmake projects
-		set(EXPORT_TARGET_DESTINATION "${QT_MKSPECS_DIR}/cmake/${PROJECT_NAME}")
-	else()
-		SET(TARGET_INCLUDE_DIR "${INCLUDE_INSTALL_DIR}")
-		SET(TARGET_LIB_DIR "${LIB_INSTALL_DIR}")
-		SET(TARGET_BIN_DIR "${BIN_INSTALL_DIR}")
-		SET(EXPORT_TARGET_DESTINATION "${CMAKECONFIG_INSTALL_DIR}")
-	endif (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#		set(EXPORT_TARGET_DESTINATION "${QT_MKSPECS_DIR}/cmake/${PROJECT_NAME}")
+#	else()
+		set(TARGET_INCLUDE_DIR "${INCLUDE_INSTALL_DIR}")
+		set(TARGET_LIB_DIR "${LIB_INSTALL_DIR}")
+		set(TARGET_BIN_DIR "${BIN_INSTALL_DIR}")
+		set(EXPORT_TARGET_DESTINATION "${CMAKECONFIG_INSTALL_DIR}")
+#	endif (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     
     # for using library in your cmake projects
     configure_file(

@@ -20,3 +20,6 @@ FOREACH(file ${files})
 #    MESSAGE(STATUS "File \"$ENV{DESTDIR}${file}\" does not exist.")
 #  ENDIF(EXISTS "$ENV{DESTDIR}${file}")
 ENDFOREACH(file)
+
+EXEC_PROGRAM("@CMAKE_COMMAND" ARGS "-E remove \"${INCLUDE_INSTALL_DIR}\"")
+EXEC_PROGRAM("@CMAKE_COMMAND" ARGS "-E remove \"${CMAKECONFIG_INSTALL_DIR}\"")

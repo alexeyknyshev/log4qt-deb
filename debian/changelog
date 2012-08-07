@@ -1,0 +1,5 @@
+log4qt (1.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #9999)
+
+ -- Alexey Knyshev <alexey.knyshev@gmail.com>  Sat, 04 Aug 2012 11:55:33 +0400
